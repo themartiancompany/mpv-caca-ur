@@ -3,6 +3,13 @@
 # Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
 # Contributor: Eivind Uggedal <eivind@uggedal.com>
 
+_os="$( \
+  uname \
+    -o)"
+_ladspa="ladspa"
+if [[ "${_os}" == "Android" ]]; then
+  _ladspa="${_ladspa}-sdk"
+fi
 _pkgname=mpv
 _variant="caca"
 pkgname="${_pkgname}-${_variant}"
@@ -98,7 +105,7 @@ depends=(
 makedepends=(
   'git'
   'python-docutils'
-  'ladspa'
+  "${_ladspa}"
   'wayland-protocols'
   'ffnvcodec-headers'
   'vulkan-headers'
@@ -138,12 +145,18 @@ build() {
 	_confdir \
 	_datadir \
 	_docdir \
+        _ffmpeg \
         _includedir \
 	_ldflags=() \
 	_libdir \
 	_pkg_config_path=() \
+        _pkg_config \
 	_prefix="/usr"
 	_waf_opts=()
+  _ffmpeg="ffmpeg"
+  # _ffmpeg="ffmpeg5.1"
+  _libplacebo="libplacebo"
+  # _libplacebo="libplacebo-4.208"
   _confdir="/etc/${pkgname}"
   _datadir="${_prefix}/share/${pkgname}"
   _docdir="${_prefix}/share/doc/${pkgname}"
@@ -151,20 +164,20 @@ build() {
   _libdir="${_prefix}/lib/${pkgname}"
   _cflags=(
     "-Wl,-rpath"
-    "-I${_prefix}/include/ffmpeg5.1"
-    "-L${_prefix}/lib/ffmpeg5.1"
+    "-I${_prefix}/include/${_ffmpeg}"
+    "-L${_prefix}/lib/${_ffmpeg}"
     "-lavfilter"
     "-lavformat"
     "-lavcodec"
     "-lavswscale"
-    "-I${_prefix}/include/libplacebo-4.208"
-    "-L${_prefix}/lib/libplacebo-4.208"
+    "-I${_prefix}/include/${_libplacebo}"
+    "-L${_prefix}/lib/${_libplacebo}"
   )
   _ldflags=(
     "-lpostproc"
   )
   _pkg_config_path=(
-    "${_prefix}/lib/ffmpeg5.1/pkgconfig"
+    "${_prefix}/lib/${_ffmpeg}/pkgconfig"
     "${PKG_CONFIG_PATH}")
   _waf_opts=(
     --prefix="${_prefix}"
@@ -181,64 +194,85 @@ build() {
     "--enable-lib${_pkgname}-shared"
     --disable-build-date
   )
-  export CCXFLAGS="${_cflags[*]}"
-  export CFLAGS="${_cflags[*]}"
-  export LDFLAGS="${_ldflags[*]}"
-  export PKG_CONFIG_PATH="$(IFS=: ; \
-	                    echo "${_pkg_config_path[*]}")"
-  export DATADIR="${_datadir}"
-  export INCLUDEDIR="${_includedir}"
-  export LIBDIR="${_libdir}"
- 
+  _pkg_config="$( \
+    IFS=: ; \
+    echo \
+      "${_pkg_config_path[*]}")"
+  export \
+    CCXFLAGS="${_cflags[*]}" \
+    CFLAGS="${_cflags[*]}" \
+    LDFLAGS="${_ldflags[*]}" \
+    PKG_CONFIG_PATH="${_pkg_config}" \
+    DATADIR="${_datadir}" \
+    INCLUDEDIR="${_includedir}" \
+    LIBDIR="${_libdir}"
   CCXFLAGS="${_cflags[*]}" \
   CFLAGS="${_cflags[*]}" \
   LDFLAGS="${_ldflags[*]}" \
+  PKG_CONFIG_PATH="${_pkg_config}" \
   DATADIR="${_datadir}" \
   INCLUDEDIR="${_includedir}" \
   LIBDIR="${_libdir}" \
-    waf configure "${_waf_opts[@]}"
-
+  waf \
+    configure \
+      "${_waf_opts[@]}"
   CCXFLAGS="${_cflags[*]}" \
   CFLAGS="${_cflags[*]}" \
   LDFLAGS="${_ldflags[*]}" \
+  PKG_CONFIG_PATH="${_pkg_config}" \
   DATADIR="${_datadir}" \
   INCLUDEDIR="${_includedir}" \
   LIBDIR="${_libdir}" \
-    waf build
+  waf \
+    build
 }
 
 package() {
-  local _datadir \
-	_includedir \
-	_libdir
+  local \
+    _datadir \
+    _includedir \
+    _libdir
   _datadir="/usr/share/${pkgname}"
   _docdir="/usr/share/doc/${_pkgname}"
   _includedir="/usr/include/${pkgname}"
   _libdir="/usr/lib/${pkgname}"
-  cd ${_pkgname}
-  export DATADIR="${_datadir}"
-  export INCLUDEDIR="${_includedir}"
-  export LIBDIR="${_libdir}"
- 
+  cd \
+    ${_pkgname}
+  export \
+    DATADIR="${_datadir}" \
+    INCLUDEDIR="${_includedir}" \
+    LIBDIR="${_libdir}"
   DATADIR="${_datadir}" \
   INCLUDEDIR="${_includedir}" \
   LIBDIR="${_libdir}" \
-    waf install --destdir="${pkgdir}"
-  install -D \
-	  -m0644 \
-	  "TOOLS/lua/"* \
-	  -t "${pkgdir}${_datadir}/scripts"
-  cd "${pkgdir}/usr/bin"
-  mv "${_pkgname}" \
-     "${pkgname}"
-  cd "${pkgdir}/usr/share"
-  mv "applications/${_pkgname}.desktop" \
-     "applications/${pkgname}.desktop"
-  mv "bash-completion/completions/${_pkgname}" \
-     "bash-completion/completions/${pkgname}"
-  rm -rf "icons"
-  mv "zsh/site-functions/_${_pkgname}" \
-     "zsh/site-functions/_${pkgname}"
+  waf \
+    install \
+      --destdir="${pkgdir}"
+  install \
+    -D \
+    -m0644 \
+    "TOOLS/lua/"* \
+    -t \
+    "${pkgdir}${_datadir}/scripts"
+  cd \
+    "${pkgdir}/usr/bin"
+  mv \
+    "${_pkgname}" \
+    "${pkgname}"
+  cd \
+    "${pkgdir}/usr/share"
+  mv \
+    "applications/${_pkgname}.desktop" \
+    "applications/${pkgname}.desktop"
+  mv \
+    "bash-completion/completions/${_pkgname}" \
+    "bash-completion/completions/${pkgname}"
+  rm \
+    -rf \
+    "icons"
+  mv \
+    "zsh/site-functions/_${_pkgname}" \
+    "zsh/site-functions/_${pkgname}"
 }
 
 # vim:set sw=2 sts=-1 et:
