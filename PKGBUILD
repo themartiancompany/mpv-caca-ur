@@ -12,6 +12,8 @@ _variant="caca"
 pkgname="${_pkg}-${_variant}"
 epoch=1
 pkgver=0.39.0
+_ffmpeg_ver=7.1
+_libplacebo_ver=7.349.0
 pkgrel=4
 pkgdesc='a free, open source, and cross-platform media player'
 arch=(
@@ -31,7 +33,7 @@ url="https://${_pkg}.io/"
 depends=(
   'alsa-lib'
   'desktop-file-utils'
-  'ffmpeg'
+  "ffmpeg=${_ffmpeg_ver}"
   'glibc'
   'hicolor-icon-theme'
   'jack'
@@ -49,7 +51,7 @@ depends=(
   'libgl'
   'libglvnd'
   'libjpeg-turbo'
-  'libplacebo'
+  "libplacebo=${_libplacebo_ver}"
   'libpulse'
   'libsixel'
   'libva'
