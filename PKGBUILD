@@ -1,65 +1,44 @@
-# Maintainer: Pellegrino Prevete <pellegrinoprevete@gmail.com>
-# Contributor: Christian Hesse <mail@eworm.de>
+# SPDX-License-Identifier: AGPL-3.0
+#
+# Maintainer: Truocolo <truocolo@aol.com>
+# Maintainer: Pellegrino Prevete (tallero) <pellegrinoprevete@gmail.com>
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Maintainer: Robin Candau <antiz@archlinux.org>
 # Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
 # Contributor: Eivind Uggedal <eivind@uggedal.com>
 
-_os="$( \
-  uname \
-    -o)"
-_ladspa="ladspa"
-if [[ "${_os}" == "Android" ]]; then
-  _ladspa="${_ladspa}-sdk"
-fi
-_pkgname=mpv
+_pkg=mpv
 _variant="caca"
-pkgname="${_pkgname}-${_variant}"
+pkgname="${_pkg}-${_variant}"
 epoch=1
-_tag='df6d84c1cf4bbc2b998f4d320542c78df674512d' # git rev-parse v${pkgver}
-pkgver=0.34.1
-pkgrel=6
-_pkgdesc=('a free, open source, and cross-platform'
-	  "media player (lib${_variant} support)")
-pkgdesc="${_pkgdesc[*]}"
+pkgver=0.39.0
+pkgrel=4
+pkgdesc='a free, open source, and cross-platform media player'
 arch=(
-  x86_64
-  i686
-  pentium4
-  aarm64
-  armv7h
-  armv6l
-  powerpc
+  'x86_64'
+  'arm'
+  'aarch64'
+  'armv7l'
+  'armv6l'
+  'i686'
+  'pentium4'
+  'mips'
 )
-# We link against libraries that are licensed GPLv3 explicitly, so our
-# package is GPLv3 only as well. (Is this still correct?)
 license=(
-  GPL3)
-url="https://${_pkgname}.io"
-_ns="${_pkgname}-player"
-_url="https://github.com/${_ns}/${_pkgname}"
+  'GPL-2.0-or-later AND LGPL-2.1-or-later'
+)
+url="https://${_pkg}.io/"
 depends=(
   'alsa-lib'
-  'libasound.so'
   'desktop-file-utils'
-  'ffmpeg5.1'
-  'libavcodec.so'
-  'libavdevice.so'
-  'libavfilter.so'
-  'libavformat.so'
-  'libavutil.so'
-  'libswresample.so'
-  'libswscale.so'
+  'ffmpeg'
   'glibc'
   'hicolor-icon-theme'
   'jack'
-  'libjack.so'
   'lcms2'
-  'liblcms2.so'
   'libarchive'
-  'libarchive.so'
   'libass'
-  'libass.so'
   'libbluray'
-  'libbluray.so'
   "lib${_variant}"
   'libcdio'
   'libcdio-paranoia'
@@ -69,210 +48,146 @@ depends=(
   'libegl'
   'libgl'
   'libglvnd'
-  'libjpeg'
-  'libjpeg.so'
-  'libplacebo4.208'
-  'libplacebo.so'
+  'libjpeg-turbo'
+  'libplacebo'
   'libpulse'
-  'libpulse.so'
+  'libsixel'
   'libva'
-  'libva.so'
-  'libva-drm.so'
-  'libva-wayland.so'
-  'libva-x11.so'
   'libvdpau'
   'libx11'
   'libxext'
-  'libxinerama'
   'libxkbcommon'
-  'libxkbcommon.so'
+  'libxpresent'
   'libxrandr'
   'libxss'
   'libxv'
-  'lua52'
+  'luajit'
   'mesa'
   'mujs'
+  'libpipewire'
   'rubberband'
-  'librubberband.so'
-  'shaderc'
-  'libshaderc_shared.so'
+  'openal'
   'uchardet'
+  'vapoursynth'
   'vulkan-icd-loader'
   'wayland'
-  'xdg-utils'
   'zlib'
 )
 makedepends=(
   'git'
+  'meson'
   'python-docutils'
-  "${_ladspa}"
+  'ladspa'
   'wayland-protocols'
   'ffnvcodec-headers'
   'vulkan-headers'
-  'waf'
 )
 optdepends=(
-  'youtube-dl: for video-sharing websites playback'
+  'yt-dlp: for video-sharing websites playback'
 )
 provides=(
-  "lib${_pkgname}.so"
-  "${_pkgname}"
-  "${_pkgname}0.34"
+  "lib${_pkg}.so"
+  "${_pkg}=${pkgver}"
+)
+conflicts=(
+  "${_pkg}"
 )
 options=(
   '!emptydirs'
 )
 validpgpkeys=(
-  '145077D82501AA20152CACCE8D769208D5E31419'  # sfan5 <sfan5@live.de>
+  # sfan5 <sfan5@live.de>
+  '145077D82501AA20152CACCE8D769208D5E31419'
 )
+_http="https://github.com"
+_ns="${_pkg}-player"
+_url="${_http}/${_ns}/${_pkg}"
 source=(
-  "git+${_url}.git#tag=${_tag}?signed"
+  "git+${_url}.git#tag=v${pkgver}?signed"
+  "dynamically_generate_desktop_file_protocols.patch"
 )
 sha256sums=(
-  'SKIP'
+  '51e787dbff240d69227f306685fc962daae215c755689b9de4ef0432ddf4443b'
+  '88acf97cbc8e0fe745f09bd0bd7f65e0437adcb549dadf3588fd0724d01298e9'
 )
 
-prepare() {
-  cd ${_pkgname}
-  git cherry-pick -n \
-    '79bfcc672343ddbc348e040ad899d61a0bafc050' \
-    'fc94c8c365ebeb038af6052bf4ea0506c1220559'
+build() {
+  local \
+    _meson_options=()
+  _meson_options=(
+    --auto-features auto
+    -D"lib${_pkg}"="true"
+    -Dgl-x11=enabled
+    -D"${_variant}"="enabled"
+    -Dcdda=enabled
+    -Ddvbin=enabled
+    -Ddvdnav=enabled
+    -Dlibarchive=enabled
+    -Dopenal=enabled
+  )
+  arch-meson \
+    "${pkgname}" \
+      build \
+      "${_meson_options[@]}"
+  meson \
+    compile \
+    -C \
+      build
 }
 
-build() {
-  cd ${_pkgname}
-  local _cflags=() \
-	_confdir \
-	_datadir \
-	_docdir \
-        _ffmpeg \
-        _includedir \
-	_ldflags=() \
-	_libdir \
-	_pkg_config_path=() \
-        _pkg_config \
-	_prefix="/usr"
-	_waf_opts=()
-  _ffmpeg="ffmpeg"
-  # _ffmpeg="ffmpeg5.1"
-  _libplacebo="libplacebo"
-  # _libplacebo="libplacebo-4.208"
-  _confdir="/etc/${pkgname}"
-  _datadir="${_prefix}/share/${pkgname}"
-  _docdir="${_prefix}/share/doc/${pkgname}"
-  _includedir="${_prefix}/include/${pkgname}"
-  _libdir="${_prefix}/lib/${pkgname}"
-  _cflags=(
-    "-Wl,-rpath"
-    "-I${_prefix}/include/${_ffmpeg}"
-    "-L${_prefix}/lib/${_ffmpeg}"
-    "-lavfilter"
-    "-lavformat"
-    "-lavcodec"
-    "-lavswscale"
-    "-I${_prefix}/include/${_libplacebo}"
-    "-L${_prefix}/lib/${_libplacebo}"
-  )
-  _ldflags=(
-    "-lpostproc"
-  )
-  _pkg_config_path=(
-    "${_prefix}/lib/${_ffmpeg}/pkgconfig"
-    "${PKG_CONFIG_PATH}")
-  _waf_opts=(
-    --prefix="${_prefix}"
-    --libdir="${_libdir}"
-    --includedir="${_includedir}"
-    --confdir="${_confdir}"
-    --docdir="${_docdir}"
-    --disable-manpage-build
-    --enable-cdda
-    --enable-dvb
-    --enable-dvdnav
-    --enable-libarchive
-    --disable-vulkan
-    "--enable-lib${_pkgname}-shared"
-    --disable-build-date
-  )
-  _pkg_config="$( \
-    IFS=: ; \
-    echo \
-      "${_pkg_config_path[*]}")"
-  export \
-    CCXFLAGS="${_cflags[*]}" \
-    CFLAGS="${_cflags[*]}" \
-    LDFLAGS="${_ldflags[*]}" \
-    PKG_CONFIG_PATH="${_pkg_config}" \
-    DATADIR="${_datadir}" \
-    INCLUDEDIR="${_includedir}" \
-    LIBDIR="${_libdir}"
-  CCXFLAGS="${_cflags[*]}" \
-  CFLAGS="${_cflags[*]}" \
-  LDFLAGS="${_ldflags[*]}" \
-  PKG_CONFIG_PATH="${_pkg_config}" \
-  DATADIR="${_datadir}" \
-  INCLUDEDIR="${_includedir}" \
-  LIBDIR="${_libdir}" \
-  waf \
-    configure \
-      "${_waf_opts[@]}"
-  CCXFLAGS="${_cflags[*]}" \
-  CFLAGS="${_cflags[*]}" \
-  LDFLAGS="${_ldflags[*]}" \
-  PKG_CONFIG_PATH="${_pkg_config}" \
-  DATADIR="${_datadir}" \
-  INCLUDEDIR="${_includedir}" \
-  LIBDIR="${_libdir}" \
-  waf \
-    build
+check() {
+  meson \
+    test \
+    -C \
+      build
 }
 
 package() {
-  local \
-    _datadir \
-    _includedir \
-    _libdir
-  _datadir="/usr/share/${pkgname}"
-  _docdir="/usr/share/doc/${_pkgname}"
-  _includedir="/usr/include/${pkgname}"
-  _libdir="/usr/lib/${pkgname}"
-  cd \
-    ${_pkgname}
-  export \
-    DATADIR="${_datadir}" \
-    INCLUDEDIR="${_includedir}" \
-    LIBDIR="${_libdir}"
-  DATADIR="${_datadir}" \
-  INCLUDEDIR="${_includedir}" \
-  LIBDIR="${_libdir}" \
-  waf \
+  depends+=(
+    'libasound.so'
+    'libavcodec.so'
+    'libavdevice.so'
+    'libavfilter.so'
+    'libavformat.so'
+    'libavutil.so'
+    'libswresample.so'
+    'libswscale.so'
+    'libjack.so'
+    'liblcms2.so'
+    'libarchive.so'
+    'libass.so'
+    'libbluray.so'
+    'libjpeg.so'
+    'libplacebo.so'
+    'libpulse.so'
+    'libva.so'
+    'libva-drm.so'
+    'libva-wayland.so'
+    'libva-x11.so'
+    'libxkbcommon.so'
+    'librubberband.so'
+  )
+  meson \
     install \
-      --destdir="${pkgdir}"
+    -C \
+      build \
+    --destdir \
+      "${pkgdir}"
+  # delete private entries only required for static linking 
+  sed \
+    -i \
+    -e \
+      '/Requires.private/d' \
+    -e \
+      '/Libs.private/d' \
+    "${pkgdir}/usr/lib/pkgconfig/${_pkg}.pc"
   install \
-    -D \
     -m0644 \
-    "TOOLS/lua/"* \
+    "${pkgname}"/DOCS/{encoding.rst,tech-overview.txt} \
+    "${pkgdir}/usr/share/doc/${_pkg}"
+  install \
+    -Dm0644 \
+    "${pkgname}"/TOOLS/{"u${_pkg}","${_pkg}_identify.sh",stats-conv.py,idet.sh,lua/*} \
     -t \
-    "${pkgdir}${_datadir}/scripts"
-  cd \
-    "${pkgdir}/usr/bin"
-  mv \
-    "${_pkgname}" \
-    "${pkgname}"
-  cd \
-    "${pkgdir}/usr/share"
-  mv \
-    "applications/${_pkgname}.desktop" \
-    "applications/${pkgname}.desktop"
-  mv \
-    "bash-completion/completions/${_pkgname}" \
-    "bash-completion/completions/${pkgname}"
-  rm \
-    -rf \
-    "icons"
-  mv \
-    "zsh/site-functions/_${_pkgname}" \
-    "zsh/site-functions/_${pkgname}"
+    "${pkgdir}/usr/share/${_pkg}/scripts"
 }
-
-# vim:set sw=2 sts=-1 et:
