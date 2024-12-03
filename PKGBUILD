@@ -126,7 +126,7 @@ build() {
     -Dopenal=enabled
   )
   arch-meson \
-    "${pkgname}" \
+    "${_pkg}" \
       build \
       "${_meson_options[@]}"
   meson \
@@ -183,11 +183,11 @@ package() {
     "${pkgdir}/usr/lib/pkgconfig/${_pkg}.pc"
   install \
     -m0644 \
-    "${pkgname}"/DOCS/{encoding.rst,tech-overview.txt} \
+    "${_pkg}"/DOCS/{encoding.rst,tech-overview.txt} \
     "${pkgdir}/usr/share/doc/${_pkg}"
   install \
     -Dm0644 \
-    "${pkgname}"/TOOLS/{"u${_pkg}","${_pkg}_identify.sh",stats-conv.py,idet.sh,lua/*} \
+    "${_pkg}"/TOOLS/{"u${_pkg}","${_pkg}_identify.sh",stats-conv.py,idet.sh,lua/*} \
     -t \
     "${pkgdir}/usr/share/${_pkg}/scripts"
 }
