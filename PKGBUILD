@@ -7,6 +7,9 @@
 # Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
 # Contributor: Eivind Uggedal <eivind@uggedal.com>
 
+_os="$( \
+  uname \
+    -o)"
 _pkg=mpv
 _variant="caca"
 pkgname="${_pkg}-${_variant}"
