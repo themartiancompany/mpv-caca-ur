@@ -13,7 +13,9 @@ pkgname="${_pkg}-${_variant}"
 epoch=1
 pkgver=0.39.0
 _ffmpeg_ver="2:7.1"
+_android_ffmpeg_ver="6.1.2"
 _libplacebo_ver=7.349.0
+_android_libplacebo_ver="6.338.2"
 pkgrel=4
 pkgdesc='a free, open source, and cross-platform media player'
 arch=(
@@ -80,8 +82,8 @@ if [[ "${_os}" == "GNU/Linux" ]]; then
   )
 elif [[ "${_os}" == "Android" ]]; then
   depends+=(
-    "ffmpeg"
-    "libplacebo"
+    "ffmpeg=${_android_ffmpeg_ver}"
+    "libplacebo=${_android_libplacebo_ver}"
   )
 fi
 makedepends=(
