@@ -210,7 +210,6 @@ build() {
     _gl="enabled"
     _x11="auto"
     _xv="auto"
-    _cflags+=(
   fi
   _meson_options+=(
     --auto-features auto
