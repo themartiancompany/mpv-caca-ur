@@ -12,6 +12,7 @@ _os="$( \
     -o)"
 _egl="true"
 _git="true"
+_offline="false"
 if [[ "${_os}" == "Android" ]]; then
   _git="false"
   _egl="false"
@@ -140,7 +141,7 @@ validpgpkeys=(
 _http="https://github.com"
 _ns="${_pkg}-player"
 _url="${_http}/${_ns}/${_pkg}"
-_tag="${_commit}"
+_tag="v${pkgver}" 
 _tag_name="pkgver"
 _tarname="${_pkg}-${_tag}"
 [[ "${_offline}" == "true" ]] && \
