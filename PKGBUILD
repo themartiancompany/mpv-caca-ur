@@ -141,7 +141,7 @@ validpgpkeys=(
 _http="https://github.com"
 _ns="${_pkg}-player"
 _url="${_http}/${_ns}/${_pkg}"
-_tag="v${pkgver}" 
+_tag="${pkgver}" 
 _tag_name="pkgver"
 _tarname="${_pkg}-${_tag}"
 [[ "${_offline}" == "true" ]] && \
@@ -150,11 +150,11 @@ if [[ "${_git}" == true ]]; then
   makedepends+=(
     "git"
   )
-  _src="${_tarname}::git+${_url}#${_tag_name}=${_tag}?signed"
+  _src="${_tarname}::git+${_url}#${_tag_name}=v${_tag}?signed"
   _sum="SKIP"
 elif [[ "${_git}" == false ]]; then
   if [[ "${_tag_name}" == 'pkgver' ]]; then
-    _src="${_tarname}.tar.gz::${_url}/archive/refs/tags/${_tag}.tar.gz"
+    _src="${_tarname}.tar.gz::${_url}/archive/refs/tags/v${_tag}.tar.gz"
     _sum='2ca92437affb62c2b559b4419ea4785c70d023590500e8a52e95ea3ab4554683'
   elif [[ "${_tag_name}" == "commit" ]]; then
     _src="${_tarname}.zip::${_url}/archive/${_commit}.zip"
