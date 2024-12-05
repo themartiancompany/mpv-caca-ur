@@ -11,7 +11,9 @@ _os="$( \
   uname \
     -o)"
 _egl="true"
+_git="true"
 if [[ "${_os}" == "Android" ]]; then
+  _git="false"
   _egl="false"
 fi
 _py="python"
@@ -102,7 +104,6 @@ elif [[ "${_os}" == "Android" ]]; then
   )
 fi
 makedepends=(
-  'git'
   'meson'
   "${_py}-docutils"
   'vulkan-headers'
@@ -139,13 +140,33 @@ validpgpkeys=(
 _http="https://github.com"
 _ns="${_pkg}-player"
 _url="${_http}/${_ns}/${_pkg}"
+_tag="${_commit}"
+_tag_name="pkgver"
+_tarname="${_pkg}-${_tag}"
+[[ "${_offline}" == "true" ]] && \
+  _url="file://${HOME}/${_pkg}"
+if [[ "${_git}" == true ]]; then
+  makedepends+=(
+    "git"
+  )
+  _src="${_tarname}::git+${_url}#${_tag_name}=${_tag}?signed"
+  _sum="SKIP"
+elif [[ "${_git}" == false ]]; then
+  if [[ "${_tag_name}" == 'pkgver' ]]; then
+    _src="${_tarname}.tar.gz::${_url}/archive/refs/tags/${_tag}.tar.gz"
+    _sum="d4f4179c6e4ce1702c5fe6af132669e8ec4d0378428f69518f2926b969663a91"
+  elif [[ "${_tag_name}" == "commit" ]]; then
+    _src="${_tarname}.zip::${_url}/archive/${_commit}.zip"
+    _sum='31ac0b8014076f8c7cafa1c92c311359dc7f6f931e17c0a718c406cae77272f7'
+  fi
+fi
 source=(
-  "git+${_url}.git#tag=v${pkgver}?signed"
+  "${_src}"
   "dynamically_generate_desktop_file_protocols.patch"
   "${_pkg}.android.conf"
 )
 sha256sums=(
-  '51e787dbff240d69227f306685fc962daae215c755689b9de4ef0432ddf4443b'
+  "${_sum}"
   '88acf97cbc8e0fe745f09bd0bd7f65e0437adcb549dadf3588fd0724d01298e9'
   'd356992ddb798c886f684ce5776bb9c1c145ba33584e108734d6c8372c9b27a5'
 )
@@ -235,7 +256,7 @@ build() {
   CFLAGS="${_cflags[*]}" \
   CXXFLAGS="${_cflags[*]}" \
   arch-meson \
-    "${_pkg}" \
+    "${_tarname}" \
       build \
       "${_meson_options[@]}"
   CFLAGS="${_cflags[*]}" \
@@ -296,11 +317,11 @@ package() {
     "${terdir}/usr/lib/pkgconfig/${_pkg}.pc"
   install \
     -m0644 \
-    "${_pkg}"/DOCS/{encoding.rst,tech-overview.txt} \
+    "${_tarname}"/DOCS/{encoding.rst,tech-overview.txt} \
     "${terdir}/usr/share/doc/${_pkg}"
   install \
     -Dm0644 \
-    "${_pkg}"/TOOLS/{"u${_pkg}","${_pkg}_identify.sh",stats-conv.py,idet.sh,lua/*} \
+    "${_tarname}"/TOOLS/{"u${_pkg}","${_pkg}_identify.sh",stats-conv.py,idet.sh,lua/*} \
     -t \
     "${terdir}/usr/share/${_pkg}/scripts"
   if [[ "${_os}" == "Android" ]]; then
