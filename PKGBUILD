@@ -142,10 +142,12 @@ _url="${_http}/${_ns}/${_pkg}"
 source=(
   "git+${_url}.git#tag=v${pkgver}?signed"
   "dynamically_generate_desktop_file_protocols.patch"
+  "${_pkg}.android.conf"
 )
 sha256sums=(
   '51e787dbff240d69227f306685fc962daae215c755689b9de4ef0432ddf4443b'
   '88acf97cbc8e0fe745f09bd0bd7f65e0437adcb549dadf3588fd0724d01298e9'
+  'd356992ddb798c886f684ce5776bb9c1c145ba33584e108734d6c8372c9b27a5'
 )
 
 _include_get() {
@@ -302,4 +304,10 @@ package() {
     "${_pkg}"/TOOLS/{"u${_pkg}","${_pkg}_identify.sh",stats-conv.py,idet.sh,lua/*} \
     -t \
     "${terdir}/usr/share/${_pkg}/scripts"
+  if [[ "${_os}" == "Android" ]]; then
+    install \
+      -Dm0644 \
+      "${srcdir}/${_pkg}.android.conf"
+      "${pkgdir}/etc/${_pkg}/${_pkg}.conf"
+  fi
 }
