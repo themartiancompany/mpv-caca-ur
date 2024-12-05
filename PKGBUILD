@@ -41,20 +41,14 @@ depends=(
   'glibc'
   'hicolor-icon-theme'
   'jack'
-  'lcms2'
   'libarchive'
   'libass'
   'libbluray'
   "lib${_variant}"
   'libdrm'
-  'libegl'
-  'libgl'
   'libglvnd'
   'libjpeg-turbo'
-  'libpulse'
   'libsixel'
-  'libva'
-  'libvdpau'
   'libx11'
   'libxext'
   'libxkbcommon'
@@ -65,28 +59,37 @@ depends=(
   'luajit'
   'mesa'
   'mujs'
-  'libpipewire'
   'rubberband'
-  'openal'
   'uchardet'
   'vapoursynth'
-  'vulkan-icd-loader'
   'wayland'
   'zlib'
 )
 if [[ "${_os}" == "GNU/Linux" ]]; then
   depends+=(
     "ffmpeg=${_ffmpeg_ver}"
+    'lcms2'
     "libplacebo=${_libplacebo_ver}"
     'libcdio'
     'libcdio-paranoia'
     'libdvdnav'
     'libdvdread'
+    'libegl'
+    'libgl'
+    'libpipewire'
+    'libpulse'
+    'libva'
+    'libvdpau'
+    'openal'
+    'vulkan-icd-loader'
   )
 elif [[ "${_os}" == "Android" ]]; then
   depends+=(
     "ffmpeg=${_android_ffmpeg_ver}"
     "libplacebo=${_android_libplacebo_ver}"
+    'openal-soft'
+    "pipewire"
+    "pulseaudio"
   )
 fi
 makedepends=(
