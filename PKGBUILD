@@ -10,6 +10,10 @@
 _os="$( \
   uname \
     -o)"
+_egl="true"
+if [[ "${_os}" == "Android" ]]; then
+  _egl="false"
+fi
 _py="python"
 _pkg=mpv
 _variant="caca"
@@ -66,6 +70,11 @@ depends=(
   'wayland'
   'zlib'
 )
+if [[ "${_egl}" == "true" ]]; then
+  depends+=(
+    'libegl'
+  )
+fi
 if [[ "${_os}" == "GNU/Linux" ]]; then
   depends+=(
     "ffmpeg=${_ffmpeg_ver}"
@@ -75,7 +84,6 @@ if [[ "${_os}" == "GNU/Linux" ]]; then
     'libcdio-paranoia'
     'libdvdnav'
     'libdvdread'
-    'libegl'
     'libgl'
     'libpipewire'
     'libpulse'
@@ -110,6 +118,7 @@ elif [[ "${_os}" == "Android" ]]; then
     'ladspa-sdk'
     'libwayland-protocols'
   )
+fi
 optdepends=(
   'yt-dlp: for video-sharing websites playback'
 )
@@ -139,25 +148,62 @@ sha256sums=(
   '88acf97cbc8e0fe745f09bd0bd7f65e0437adcb549dadf3588fd0724d01298e9'
 )
 
+_include_get() {
+  local \
+    _usr \
+    _bin \
+    _cc
+  _cc="$( \
+    command \
+      -v \
+      "cc" \
+      "gcc" \
+      "clang" | \
+      head \
+       -n \
+       1)"
+  _bin="$( \
+    dirname \
+      "${_cc}")"
+  _usr="$( \
+    dirname \
+      "${_bin}")"
+  echo \
+    "${_usr}/include"
+}
+
 build() {
   local \
+    _cflags=() \
     _meson_options=() \
     _cdda \
     _dvdbin \
-    _dvdnav
+    _dvdnav \
+    _include
+  _include="$( \
+    _include_get)"
+  _cflags=(
+    "${CFLAGS}"
+  )
   if [[ "${_os}" == "Android" ]]; then
     _cdda="disabled"
     _dvdbin="disabled"
     _dvdnav="disabled"
+    _gl="disabled"
+    _cflags+=(
+      -I"${_include}/vapoursynth"
+    )
   elif [[ "${_os}" == "GNU/Linux" ]]; then
     _cdda="enabled"
     _dvdbin="enabled"
     _dvdnav="enabled"
+    _gl="enabled"
   fi
   _meson_options+=(
     --auto-features auto
     -D"lib${_pkg}"="true"
-    -Dgl-x11=enabled
+    -Dgl="${_gl}"
+    -Dgl-x11="${_gl}"
     -D"${_variant}"="enabled"
     -Dcdda="${_cdda}"
     -Ddvbin="${_dvdbin}"
@@ -165,10 +211,21 @@ build() {
     -Dlibarchive=enabled
     -Dopenal=enabled
   )
+  if [[ "${_egl}" == "false" ]]; then
+    _meson_options+=(
+      -Degl="disabled"
+    )
+  fi
+  export \
+    CFLAGS="${_cflags[*]}"
+  CFLAGS="${_cflags[*]}" \
+  CXXFLAGS="${_cflags[*]}" \
   arch-meson \
     "${_pkg}" \
       build \
       "${_meson_options[@]}"
+  CFLAGS="${_cflags[*]}" \
+  CXXFLAGS="${_cflags[*]}" \
   meson \
     compile \
     -C \
@@ -183,36 +240,38 @@ check() {
 }
 
 package() {
-  depends+=(
-    'libasound.so'
-    'libavcodec.so'
-    'libavdevice.so'
-    'libavfilter.so'
-    'libavformat.so'
-    'libavutil.so'
-    'libswresample.so'
-    'libswscale.so'
-    'libjack.so'
-    'liblcms2.so'
-    'libarchive.so'
-    'libass.so'
-    'libbluray.so'
-    'libjpeg.so'
-    'libplacebo.so'
-    'libpulse.so'
-    'libva.so'
-    'libva-drm.so'
-    'libva-wayland.so'
-    'libva-x11.so'
-    'libxkbcommon.so'
-    'librubberband.so'
-  )
+  if [[ "${_os}" == "GNU/Linux" ]]; then
+    depends+=(
+      'libasound.so'
+      'libavcodec.so'
+      'libavdevice.so'
+      'libavfilter.so'
+      'libavformat.so'
+      'libavutil.so'
+      'libswresample.so'
+      'libswscale.so'
+      'libjack.so'
+      'libarchive.so'
+      'libass.so'
+      'libbluray.so'
+      'liblcms2.so'
+      'libjpeg.so'
+      'libplacebo.so'
+      'libpulse.so'
+      'libva.so'
+      'libva-drm.so'
+      'libva-wayland.so'
+      'libva-x11.so'
+      'libxkbcommon.so'
+      'librubberband.so'
+    )
+  fi
   meson \
     install \
     -C \
       build \
     --destdir \
-      "${pkgdir}"
+      "${terdir}"
   # delete private entries only required for static linking 
   sed \
     -i \
@@ -220,14 +279,14 @@ package() {
       '/Requires.private/d' \
     -e \
       '/Libs.private/d' \
-    "${pkgdir}/usr/lib/pkgconfig/${_pkg}.pc"
+    "${terdir}/usr/lib/pkgconfig/${_pkg}.pc"
   install \
     -m0644 \
     "${_pkg}"/DOCS/{encoding.rst,tech-overview.txt} \
-    "${pkgdir}/usr/share/doc/${_pkg}"
+    "${terdir}/usr/share/doc/${_pkg}"
   install \
     -Dm0644 \
     "${_pkg}"/TOOLS/{"u${_pkg}","${_pkg}_identify.sh",stats-conv.py,idet.sh,lua/*} \
     -t \
-    "${pkgdir}/usr/share/${_pkg}/scripts"
+    "${terdir}/usr/share/${_pkg}/scripts"
 }
