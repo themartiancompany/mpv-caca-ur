@@ -46,11 +46,7 @@ depends=(
   'libass'
   'libbluray'
   "lib${_variant}"
-  'libcdio'
-  'libcdio-paranoia'
   'libdrm'
-  'libdvdnav'
-  'libdvdread'
   'libegl'
   'libgl'
   'libglvnd'
@@ -82,6 +78,10 @@ if [[ "${_os}" == "GNU/Linux" ]]; then
   depends+=(
     "ffmpeg=${_ffmpeg_ver}"
     "libplacebo=${_libplacebo_ver}"
+    'libcdio'
+    'libcdio-paranoia'
+    'libdvdnav'
+    'libdvdread'
   )
 elif [[ "${_os}" == "Android" ]]; then
   depends+=(
@@ -129,15 +129,27 @@ sha256sums=(
 
 build() {
   local \
-    _meson_options=()
-  _meson_options=(
+    _meson_options=() \
+    _cdda \
+    _dvdbin \
+    _dvdnav
+  if [[ "${_os}" == "Android" ]]; then
+    _cdda="disabled"
+    _dvdbin="disabled"
+    _dvdnav="disabled"
+  elif [[ "${_os}" == "GNU/Linux" ]]; then
+    _cdda="enabled"
+    _dvdbin="enabled"
+    _dvdnav="enabled"
+  fi
+  _meson_options+=(
     --auto-features auto
     -D"lib${_pkg}"="true"
     -Dgl-x11=enabled
     -D"${_variant}"="enabled"
-    -Dcdda=enabled
-    -Ddvbin=enabled
-    -Ddvdnav=enabled
+    -Dcdda="${_cdda}"
+    -Ddvbin="${_dvdbin}"
+    -Ddvdnav="${_dvdnav}"
     -Dlibarchive=enabled
     -Dopenal=enabled
   )
