@@ -54,13 +54,11 @@ depends=(
   'libglvnd'
   'libjpeg-turbo'
   'libsixel'
-  'libx11'
   'libxext'
   'libxkbcommon'
   'libxpresent'
   'libxrandr'
   'libxss'
-  'libxv'
   'luajit'
   'mesa'
   'mujs'
@@ -89,6 +87,8 @@ if [[ "${_os}" == "GNU/Linux" ]]; then
     'libpulse'
     'libva'
     'libvdpau'
+    'libx11'
+    'libxv'
     'openal'
     'vulkan-icd-loader'
   )
@@ -179,7 +179,10 @@ build() {
     _cdda \
     _dvdbin \
     _dvdnav \
-    _include
+    _gl \
+    _include \
+    _x11 \
+    _xv
   _include="$( \
     _include_get)"
   _cflags=(
@@ -190,6 +193,8 @@ build() {
     _dvdbin="disabled"
     _dvdnav="disabled"
     _gl="disabled"
+    _x11="disabled"
+    _xv="disabled"
     _cflags+=(
       -I"${_include}/vapoursynth"
     )
@@ -201,6 +206,9 @@ build() {
     _dvdbin="enabled"
     _dvdnav="enabled"
     _gl="enabled"
+    _x11="auto"
+    _xv="auto"
+    _cflags+=(
   fi
   _meson_options+=(
     --auto-features auto
@@ -213,6 +221,8 @@ build() {
     -Ddvdnav="${_dvdnav}"
     -Dlibarchive=enabled
     -Dopenal=enabled
+    -Dx11="${_x11}"
+    -Dxv="${_xv}"
   )
   if [[ "${_egl}" == "false" ]]; then
     _meson_options+=(
