@@ -10,6 +10,7 @@
 _os="$( \
   uname \
     -o)"
+_py="python"
 _pkg=mpv
 _variant="caca"
 pkgname="${_pkg}-${_variant}"
@@ -95,12 +96,20 @@ fi
 makedepends=(
   'git'
   'meson'
-  'python-docutils'
-  'ladspa'
-  'wayland-protocols'
-  'ffnvcodec-headers'
+  "${_py}-docutils"
   'vulkan-headers'
 )
+if [[ "${_os}" == "GNU/Linux" ]]; then
+  makedepends+=(
+    'ffnvcodec-headers'
+    'ladspa'
+    'wayland-protocols'
+  )
+elif [[ "${_os}" == "Android" ]]; then
+  makedepends+=(
+    'ladspa-sdk'
+    'libwayland-protocols'
+  )
 optdepends=(
   'yt-dlp: for video-sharing websites playback'
 )
