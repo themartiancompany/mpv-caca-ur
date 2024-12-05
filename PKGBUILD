@@ -193,6 +193,9 @@ build() {
     _cflags+=(
       -I"${_include}/vapoursynth"
     )
+    _meson_options+=(
+      -Dandroid-media-ndk=disabled
+    )
   elif [[ "${_os}" == "GNU/Linux" ]]; then
     _cdda="enabled"
     _dvdbin="enabled"
