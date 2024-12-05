@@ -155,7 +155,7 @@ if [[ "${_git}" == true ]]; then
 elif [[ "${_git}" == false ]]; then
   if [[ "${_tag_name}" == 'pkgver' ]]; then
     _src="${_tarname}.tar.gz::${_url}/archive/refs/tags/${_tag}.tar.gz"
-    _sum="d4f4179c6e4ce1702c5fe6af132669e8ec4d0378428f69518f2926b969663a91"
+    _sum='2ca92437affb62c2b559b4419ea4785c70d023590500e8a52e95ea3ab4554683'
   elif [[ "${_tag_name}" == "commit" ]]; then
     _src="${_tarname}.zip::${_url}/archive/${_commit}.zip"
     _sum='31ac0b8014076f8c7cafa1c92c311359dc7f6f931e17c0a718c406cae77272f7'
